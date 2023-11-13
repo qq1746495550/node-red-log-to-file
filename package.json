@@ -1,15 +1,22 @@
 {
-  "name": "@cn/node-red-log-to-file",
-  "version": "0.0.1",
-  "description"  : "A sample node for node-red",
-  "keywords": [ "node-red" ],
-  "node-red": {
-    "nodes": {
-      "log-to-file": "log-to-file/log-to-file.js"
-    }
-  },
-  "dependencies": {
-    "log-rotate": "^0.2.8"
-  },
-  "__npminstall_done": true
+	"name": "@julaoshi/node-red-log-to-file",
+	"version": "0.0.3",
+	"description": "A sample node for node-red",
+	"keywords": [
+		"node-red"
+	],
+	"node-red": {
+		"nodes": {
+			"log-to-file": "log-to-file/log-to-file.js"
+		}
+	},
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"dependencies": {
+		"log-rotate": "^0.2.8",
+		"cronosjs": "1.7.1"
+	},
+	"__npminstall_done": true
 }
