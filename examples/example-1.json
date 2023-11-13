@@ -1,0 +1,64 @@
+[
+    {
+        "id": "ab43d57c4fceccd7",
+        "type": "log-to-file",
+        "z": "4a0ab9e72d187c82",
+        "name": "log-to-file 1",
+        "filePath": "",
+        "server": "755959e0d3a14a6f",
+        "sendpane": true,
+        "x": 530,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "cb2e8e5241133e0e",
+        "type": "inject",
+        "z": "4a0ab9e72d187c82",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 300,
+        "y": 300,
+        "wires": [
+            [
+                "ab43d57c4fceccd7",
+                "ec0c7db7516ca732"
+            ]
+        ]
+    },
+    {
+        "id": "ec0c7db7516ca732",
+        "type": "log-to-file",
+        "z": "4a0ab9e72d187c82",
+        "name": "log-to-file 2",
+        "filePath": "",
+        "server": "755959e0d3a14a6f",
+        "sendpane": "",
+        "x": 530,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "755959e0d3a14a6f",
+        "type": "log-server-config",
+        "filePath": "/home/log",
+        "logClean": true,
+        "deleteTime": "13:00",
+        "deleteDay": "30",
+        "logrotate": true,
+        "logcompress": true,
+        "logrotatecount": "5",
+        "logsize": "1000"
+    }
+]

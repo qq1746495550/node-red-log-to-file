@@ -1,0 +1,15 @@
+{
+  "name": "@cn/node-red-log-to-file",
+  "version": "0.0.1",
+  "description"  : "A sample node for node-red",
+  "keywords": [ "node-red" ],
+  "node-red": {
+    "nodes": {
+      "log-to-file": "log-to-file/log-to-file.js"
+    }
+  },
+  "dependencies": {
+    "log-rotate": "^0.2.8"
+  },
+  "__npminstall_done": true
+}
