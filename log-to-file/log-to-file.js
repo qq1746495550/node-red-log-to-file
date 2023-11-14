@@ -6,7 +6,6 @@ module.exports = function(RED) {
     const {scheduleTask} = require("cronosjs");
 
     var rotate = require('log-rotate');
-    let globalfilePath =""
     let globalfileAddDayDir =""
     let logrotate_global = ""
     let logcompress_global = ""
@@ -23,10 +22,14 @@ module.exports = function(RED) {
         this.inputchoice = config.inputchoice
         this.inputobject = config.inputobject
         this.inputobjectType = config.inputobjectType
+
+        this.server = RED.nodes.getNode(config.server)
         node.on('input', function(msg) {
             
             // 判断日志打印什么
             let logmessage = ConstructLogMessage(node, msg)
+            console.log("logmessage:"+JSON.stringify(logmessage))
+            console.log("logconfig:"+JSON.stringify(node.server.filePath))
              //打印日志到调试窗口
             if (node.sendpane) { // User wants the logentry also in the debug pane of the webinterface
 				node.warn(logmessage.msg)
@@ -51,8 +54,9 @@ module.exports = function(RED) {
             // 文件名称
             let fileName = "/" + year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
             // 文件绝对路径 = 文件目录地址 + 日期目录名称 + 文件名称
-            let completeLogPath = globalfilePath + dayDirName + fileName
-            globalfileAddDayDir = globalfilePath + dayDirName
+            console.log("node.server.filePath:"+node.server.filePath)
+            let completeLogPath = node.server.filePath + dayDirName + fileName
+            globalfileAddDayDir = node.server.filePath + dayDirName
             node.send(msg)
             // 写入文件
             let msgJson = {
@@ -71,7 +75,7 @@ module.exports = function(RED) {
     function LogServerConfig(n) {
         RED.nodes.createNode(this,n);
         var node = this;
-        globalfilePath = n.filePath
+        this.filePath = n.filePath
         logrotate_global = n.logrotate
 		logcompress_global = n.logcompress
 		logrotatecount_global = n.logrotatecount
@@ -96,7 +100,7 @@ module.exports = function(RED) {
 
                 let dayDir = "/" + year + "-" + month + "-" + day 
                 // 文件绝对路径 = 文件目录地址 + 文件名称
-                let completeLogPath = globalfilePath + dayDir
+                let completeLogPath = node.server.filePath + dayDir
                 //删除30天前的日志
                 deleteDirectory(completeLogPath);
                 
