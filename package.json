@@ -1,7 +1,7 @@
 {
 	"name": "@julaoshi/node-red-log-to-file",
-	"version": "0.0.3",
-	"description": "A sample node for node-red",
+	"version": "0.0.4",
+	"description": "Log collection sharding cleaning",
 	"keywords": [
 		"node-red"
 	],
@@ -9,6 +9,10 @@
 		"nodes": {
 			"log-to-file": "log-to-file/log-to-file.js"
 		}
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/qq1746495550/node-red-log-to-file"
 	},
 	"publishConfig": {
 		"access": "public",

@@ -9,6 +9,10 @@
             filePath: {value:""},
             server: {value:"", type:"log-server-config"},
             sendpane: {value:""},
+            loglevel: {value:"INFO", required: true},
+            inputchoice: {value:"fullmsg"},
+            inputobject: {value:"payload"},
+			inputobjectType: {value: 'msg'}
             
         },
         inputs: 1,
@@ -22,7 +26,25 @@
                 this.name = ''
                 RED.actions.invoke("core:generate-node-names", this, {generateHistory: false})
             }
-        }
+        },
+        oneditprepare: function() {
+			$('#node-input-inputobject').typedInput({
+				default: 'msg',
+        		typeField: $("#node-input-inputobjectType"),
+        		types: ['msg','flow','global']
+      		})
+
+      		$("#node-input-inputchoice").change(function() {
+      			if ($(this).val() == "fullmsg") {
+      				$(".inputobject").hide()
+      				$(".inputmoustache").hide()
+      			}
+      			if ($(this).val() == "object") {
+      				$(".inputobject").show()
+      				$(".inputmoustache").hide()
+      			}
+			})
+		}
     });
 })();    
 
@@ -34,17 +56,57 @@
 
 <script type="text/html" data-template-name="log-to-file">
     <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i>节点名称</label>
-        <input type="text" id="node-input-name" placeholder="Name">
+        <label for="node-input-name">
+            <i class="fa fa-tag" style="width: 10px"></i>
+            <span style="width: auto; margin-left: 5px; margin-right: 10px;">节点名称</span>
+        </label>
+        <input type="text" id="node-input-name" >
     </div>
     <div class="form-row">
-        <label for="node-input-server"><i class="fa fa-file"></i> 日志配置</label>
+		<label for="node-input-inputchoice">
+            <i class="fa fa-repeat"></i> 
+            <span style="width: auto; margin-left: 5px; margin-right: 10px;">日志类型</span>
+        </label>
+		<select type="text" id="node-input-inputchoice" >
+			<option value="fullmsg">msg所有消息</option>
+			<option value="object">选中的消息</option>
+
+		</select>
+	</div>
+
+	<div class="form-row inputobject">
+		<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-input-inputobject"><i class="fa fa-chevron-right"></i> Object</label>
+		<input type="text" id="node-input-inputobject" style="width:70%">
+		<input type="hidden" id="node-input-inputobjectType">
+	</div>
+
+    
+    
+</div>
+    <div class="form-row">
+		<label for="node-input-loglevel">
+            <i class="fa fa-exclamation" style="width: 10px"></i> 
+            <span style="width: auto; margin-left: 5px; margin-right: 10px;">日志级别</span>
+        </label>
+		<select type="text" id="node-input-loglevel" >
+			<option value="ERROR">ERROR</option>
+			<option value="WARN">WARN</option>
+			<option value="INFO">INFO</option>
+			<option value="DEBUG">DEBUG</option>
+			<option value="TRACE">TRACE</option>
+		</select>
+	</div>
+    <div class="form-row">
+        <label for="node-input-server">
+            <i class="fa fa-file" style="width: 10px"></i> 
+            <span style="width: auto; margin-left: 5px; margin-right: 10px;">日志配置</span>
+        </label>
         <input type="text" id="node-input-server">
     </div>
     <div class="form-row">
 		<label for="node-input-sendpane" style="width: auto">
-            <i class="fa fa-bug"></i>
-            <span style="width: auto; margin-left: 1px; margin-right: 10px;">调试窗口展示</span>
+            <i class="fa fa-bug" style="width: 10px"></i>
+            <span style="width: auto; margin-left: 5px; margin-right: 10px;">调试窗口打印</span>
         </label>
 		<input type="checkbox" id="node-input-sendpane" style="display: inline-block; width: auto; vertical-align: top;">
 	</div>
@@ -54,8 +116,12 @@
     <p>功能：日志采集-分片-清理</p>
     <h3>输入</h3>
     <p>目前不接受任何输入，手动配置</p>
+    <p><code>节点名称</code>自动会配置默认值,建议修改名字做区分</p>
+    <p><code>日志类型</code>可选打出msg全部信息,或者是当前流flow或者全局global的值</p>
+    <p><code>日志级别</code>会将的日志打入到带自己级别后缀的日志文件中,如2023-11-13_INFO.log</p>
+    <p><code>调试窗口打印</code>选中会将日志打入右侧调试窗口</p>
     <h3>日志配置</h3>
-    <p><code>文件夹地址</code> 前方节点发来的日志信息会全部打入(此地址/yyyy-MM-dd/)</p>
+    <p><code>文件夹地址</code> 前方节点发来的日志信息会全部打入(此地址/yyyy-MM-dd/)目录下</p>
     <p><code>定时日志清理</code>选择后每天将会定时清除历史日志</p>
     <p><code>日志保留天数</code>任意输入数字,默认为30天</p>
     <p><code>每日清理时间</code>任意输入时间,默认为13:00,24小时制</p>
@@ -115,11 +181,15 @@
 
 <script type="text/html" data-template-name="log-server-config">
     <div class="form-row">
-        <label for="node-config-input-filePath"><i class="fa fa-file"></i> 文件夹地址</label>
+        <label for="node-config-input-filePath"><i class="fa fa-file" style="width: 10px"></i>   
+            <span style="width: auto; margin-left: 5px; margin-right: 1px;">文件夹地址</span>
+        </label>
         <input type="text" id="node-config-input-filePath" placeholder="/home/log">
     </div>
     <div class="form-row">
-		<label for="node-config-input-logClean"><i class="fa fa-tag"></i> 定时日志清理</label>
+		<label for="node-config-input-logClean"><i class="fa fa-tag" style="width: 10px"></i> 
+            <span style="width: auto; margin-left: 5px; margin-right: 1px;">定时清理</span>
+        </label>
 		<input type="checkbox" id="node-config-input-logClean" style="display: inline-block; width: auto; vertical-align: top;">
 	</div>
     <div id="node-config-rotate-row">
@@ -139,8 +209,8 @@
 		</div>
 	</div>
     <div class="form-row">
-		<label for="node-config-input-logrotate"><i class="fa fa-repeat"></i>
-            <span style="width: auto; margin-left: 1px; margin-right: 1px;">日志分片</span>
+		<label for="node-config-input-logrotate"><i class="fa fa-repeat" style="width: 10px"></i>
+            <span style="width: auto; margin-left: 5px; margin-right: 1px;">日志分片</span>
             
         </label>
 		<input type="checkbox" id="node-config-input-logrotate" style="display: inline-block; width: auto; vertical-align: top;">
@@ -177,6 +247,6 @@
         <p><code>日志分片</code>将一天的日志分片为多个,目的是为了防止单个日志过大,导致打开速度较慢</p>
         <p><code>是否压缩</code>选择后文件将被压缩为.gz文件</p>
         <p><code>最大日志数量</code>单天需要保留的最多日志的数量</p>
-        <p><code>最大日志大小/kB</code>一个分片日志的最大大小，单位为kB</p>
+        <p><code>最大日志大小/kB</code>一个分片日志的最大大小,单位为kB</p>
     </script>
 </script>

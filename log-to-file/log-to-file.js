@@ -13,14 +13,21 @@ module.exports = function(RED) {
     let logrotatecount_global = ""
     let logsize_global = ""
 
+
     function LogToFile(config) {
         RED.nodes.createNode(this,config);
         var node = this;
         this.sendpane = config.sendpane
+        this.loglevel  =config.loglevel
+            
+        this.inputchoice = config.inputchoice
+        this.inputobject = config.inputobject
+        this.inputobjectType = config.inputobjectType
         node.on('input', function(msg) {
             
-            //打印日志到调试窗口
+            // 判断日志打印什么
             let logmessage = ConstructLogMessage(node, msg)
+             //打印日志到调试窗口
             if (node.sendpane) { // User wants the logentry also in the debug pane of the webinterface
 				node.warn(logmessage.msg)
 			}
@@ -42,7 +49,7 @@ module.exports = function(RED) {
             // 日期目录名称
             let dayDirName = "/"+ year + "-" + month + "-" + day
             // 文件名称
-            let fileName = "/" + year + "-" + month + "-" + day + "_log"
+            let fileName = "/" + year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
             // 文件绝对路径 = 文件目录地址 + 日期目录名称 + 文件名称
             let completeLogPath = globalfilePath + dayDirName + fileName
             globalfileAddDayDir = globalfilePath + dayDirName
@@ -51,7 +58,8 @@ module.exports = function(RED) {
             let msgJson = {
                 "time": formattedDateTime,
                 "nodeName": this.name,
-                "msg": msg
+                "level":node.loglevel,
+                "msg": logmessage.msg
             }
             let msgJsonFinal = JSON.stringify(msgJson) + "\n"
             appendToFileWithCreate(completeLogPath, msgJsonFinal);
@@ -110,9 +118,43 @@ module.exports = function(RED) {
 	}
     //打印日志到控制台所需方法
     function ConstructLogMessage(node, msg) {
-        messageRaw = msg
-        message = VarToString(messageRaw)
-        messageVar = "msg"
+        if (node.inputchoice == "object" && node.inputobject.length>0 ) {
+			message = "Please choose a flow or global name!"
+			if ( node.inputobjectType == "msg") {
+				if (node.inputobject) {
+					messageRaw = eval("msg." + node.inputobject)
+                    message = {
+                        [node.inputobject]:messageRaw
+                    }
+					messageVar = "msg." + node.inputobject
+				} else {
+                    messageRaw = msg
+                    message = messageRaw
+                    messageVar = "msg"
+				}
+			} else if (node.inputobjectType == "flow" ) {
+                let prefix = "flow.";
+				flowvar = node.inputobject
+				messageRaw = node.context().flow.get(flowvar)
+				message = {
+                    [prefix+node.inputobject]:messageRaw
+                }
+				messageVar = "flow." + flowvar
+			} else if (node.inputobjectType == "global") {
+                let prefix = "global.";
+				globalvar = node.inputobject
+				messageRaw = node.context().global.get(globalvar)
+                message = {
+                    [prefix+node.inputobject]:messageRaw
+                }
+				messageVar = "global." + globalvar
+			}
+		}else{
+            messageRaw = msg
+            message = messageRaw
+            messageVar = "msg"
+        }
+
 		return {msg: message, var: messageVar, raw: messageRaw}
 	}
     //写入文件
