@@ -1,18 +1,22 @@
 [
     {
-        "id": "ab43d57c4fceccd7",
+        "id": "17f8e970e9fb32ae",
         "type": "log-to-file",
         "z": "4a0ab9e72d187c82",
-        "name": "log-to-file 1",
+        "name": "日志节点1",
         "filePath": "",
-        "server": "755959e0d3a14a6f",
-        "sendpane": true,
-        "x": 530,
-        "y": 200,
+        "server": "dee2dde9c8a7055b",
+        "sendpane": false,
+        "loglevel": "INFO",
+        "inputchoice": "fullmsg",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "x": 470,
+        "y": 140,
         "wires": []
     },
     {
-        "id": "cb2e8e5241133e0e",
+        "id": "67887bdda6474b99",
         "type": "inject",
         "z": "4a0ab9e72d187c82",
         "name": "",
@@ -21,44 +25,119 @@
                 "p": "payload"
             }
         ],
-        "repeat": "1",
+        "repeat": "0.1",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 300,
-        "y": 300,
+        "payload": "p",
+        "payloadType": "str",
+        "x": 190,
+        "y": 240,
         "wires": [
             [
-                "ab43d57c4fceccd7",
-                "ec0c7db7516ca732"
+                "a783d68aca1a6f4a",
+                "17f8e970e9fb32ae"
             ]
         ]
     },
     {
-        "id": "ec0c7db7516ca732",
+        "id": "38fb6f6647337c4a",
         "type": "log-to-file",
         "z": "4a0ab9e72d187c82",
-        "name": "log-to-file 2",
+        "name": "日志节点3",
         "filePath": "",
-        "server": "755959e0d3a14a6f",
+        "server": "dee2dde9c8a7055b",
         "sendpane": "",
-        "x": 530,
-        "y": 360,
+        "loglevel": "INFO",
+        "inputchoice": "fullmsg",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "x": 1070,
+        "y": 140,
         "wires": []
     },
     {
-        "id": "755959e0d3a14a6f",
+        "id": "a783d68aca1a6f4a",
+        "type": "change",
+        "z": "4a0ab9e72d187c82",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "123",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 470,
+        "y": 240,
+        "wires": [
+            [
+                "de4d047bc863e884",
+                "110b16bf45def263"
+            ]
+        ]
+    },
+    {
+        "id": "de4d047bc863e884",
+        "type": "change",
+        "z": "4a0ab9e72d187c82",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "key",
+                "pt": "msg",
+                "to": "testkey",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 820,
+        "y": 240,
+        "wires": [
+            [
+                "38fb6f6647337c4a"
+            ]
+        ]
+    },
+    {
+        "id": "110b16bf45def263",
+        "type": "log-to-file",
+        "z": "4a0ab9e72d187c82",
+        "name": "日志节点2",
+        "filePath": "",
+        "server": "dee2dde9c8a7055b",
+        "sendpane": "",
+        "loglevel": "INFO",
+        "inputchoice": "fullmsg",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "x": 750,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "dee2dde9c8a7055b",
         "type": "log-server-config",
         "filePath": "/home/log",
         "logClean": true,
-        "deleteTime": "13:00",
+        "deleteTime": "13:51",
         "deleteDay": "30",
         "logrotate": true,
-        "logcompress": true,
+        "logcompress": false,
         "logrotatecount": "5",
-        "logsize": "1000"
+        "logsize": "100"
     }
 ]

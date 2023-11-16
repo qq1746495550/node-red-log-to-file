@@ -1,10 +1,11 @@
 {
 	"name": "@julaoshi/node-red-log-to-file",
-	"version": "0.0.9",
+	"version": "0.1.0",
 	"description": "Log collection sharding cleaning",
 	"keywords": [
 		"node-red"
 	],
+	"license": "ISC",
 	"node-red": {
 		"nodes": {
 			"log-to-file": "log-to-file/log-to-file.js"
