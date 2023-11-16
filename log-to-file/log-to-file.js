@@ -43,12 +43,11 @@ module.exports = function(RED) {
             // 格式化成标准日期时间字符串
             let formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
             // 日期目录名称
-            let dayDirName = "/"+ year + "-" + month + "-" + day
+            let dayDirName = year + "-" + month + "-" + day
             // 文件名称
-            let fileName = "/" + year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
+            let fileName = year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
             // 文件绝对路径 = 文件目录地址 + 日期目录名称 + 文件名称
-            let completeLogPath = node.server.filePath + dayDirName + fileName
-           
+            let completeLogPath = path.join(node.server.filePath,dayDirName,fileName)
             // 写入文件
             let msgJson = {
                 "time": formattedDateTime,
@@ -91,9 +90,9 @@ module.exports = function(RED) {
                 let month = String(daysAgo.getMonth() + 1).padStart(2, '0'); // 注意月份从0开始，需要加1，并补零
                 let day = String(daysAgo.getDate()).padStart(2, '0');
 
-                let dayDir = "/" + year + "-" + month + "-" + day 
+                let dayDir = year + "-" + month + "-" + day 
                 // 文件绝对路径 = 文件目录地址 + 文件名称
-                let completeLogPath = n.filePath + dayDir
+                let completeLogPath = path.join(n.filePath,dayDir)
                 //删除30天前的日志
                 deleteDirectory(completeLogPath);
                 
@@ -202,53 +201,7 @@ module.exports = function(RED) {
             delete this.cronjob;
         }
     };
-    // //日志分片
-	// function LogRotate(node, filename, addlength) {
-	// 	if (node.server.logrotate) {
-	// 		fullpath = node.server.filePath  + filename
-    //         // console.log("fullpath1:"+addlength)
-	// 		if (fs.existsSync(fullpath)) {
-	// 			stats = fs.statSync(fullpath)
-	// 			fileSizeInBytes = stats["size"]
-	// 			if (fileSizeInBytes + addlength + 1 >= node.server.logsize * 1000 ) {
-    //                 console.log("fileSizeInBytes + addlength + 1:"+fileSizeInBytes + addlength + 1)
-	// 				rotate(fullpath, { count: node.server.logrotatecount, compress: (node.server.logcompress==true)}, function(err) {
-	// 					if (err) {
-	// 						node.warn("Could not rotate logfiles: " + err)
-	// 					} else {
-    //                         fs.writeFileSync(fullpath, '');
-	// 					}
-	// 				})
-	// 			}
-	// 		}
-	// 	}
-	// }
-    // function LogRotate(node, baseFileName) {
-    //     const currentFile = baseFileName;
-
-    //     if (!fs.existsSync(currentFile)) {
-    //         // If the current log file doesn't exist, create it.
-    //         fs.writeFileSync(currentFile, '');
-    //     }
-
-    //     const stats = fs.statSync(currentFile);
-    //     const fileSizeInBytes = stats.size;
-    //     if (fileSizeInBytes > node.server.logsize * 1024) {
-    //         // If the current log file size exceeds the limit, rotate logs
-    //         for (let i = node.server.logrotatecount; i > 1; i--) {
-    //             const source = `${baseFileName}_${i - 1}`;
-    //             const destination = `${baseFileName}_${i}`;
-    //             if (fs.existsSync(source)) {
-    //                 fs.renameSync(source, destination);
-    //             }
-    //         }
-    //         // Move the current log file to _1.log
-    //         const newFilePath = `${baseFileName}_1`;
-    //         fs.renameSync(currentFile, newFilePath);
-    //         // Create a new empty log file
-    //         fs.writeFileSync(currentFile, '');
-    //     }
-    // }
+    //日志分片
     function LogRotate(node, baseFileName) {
         const currentFile = baseFileName;
     
@@ -285,7 +238,7 @@ module.exports = function(RED) {
             fs.writeFileSync(currentFile, '');
         }
     }
-    
+    //日志分片后的压缩
     function compressLogFile(filePath) {
         const readStream = fs.createReadStream(filePath);
         const writeStream = fs.createWriteStream(`${filePath}.gz`);
