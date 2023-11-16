@@ -5,12 +5,7 @@ module.exports = function(RED) {
 
     const {scheduleTask} = require("cronosjs");
 
-    var rotate = require('log-rotate');
-    let globalfileAddDayDir =""
-    let logrotate_global = ""
-    let logcompress_global = ""
-    let logrotatecount_global = ""
-    let logsize_global = ""
+    const zlib = require('zlib');
 
 
     function LogToFile(config) {
@@ -53,8 +48,7 @@ module.exports = function(RED) {
             let fileName = "/" + year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
             // 文件绝对路径 = 文件目录地址 + 日期目录名称 + 文件名称
             let completeLogPath = node.server.filePath + dayDirName + fileName
-            globalfileAddDayDir = node.server.filePath + dayDirName
-            node.send(msg)
+           
             // 写入文件
             let msgJson = {
                 "time": formattedDateTime,
@@ -64,20 +58,22 @@ module.exports = function(RED) {
             }
             let msgJsonFinal = JSON.stringify(msgJson) + "\n"
             appendToFileWithCreate(completeLogPath, msgJsonFinal);
-
             //日志分片
-            LogRotate(node, fileName, msgJsonFinal.length)
+            if(node.server.logrotate){
+                LogRotate(node, completeLogPath, msgJsonFinal.length)
+            }
+            node.send(msg)
         });
     }
     function LogServerConfig(n) {
         RED.nodes.createNode(this,n);
         var node = this;
         this.filePath = n.filePath
-        logrotate_global = n.logrotate
-		logcompress_global = n.logcompress
-		logrotatecount_global = n.logrotatecount
-		logsize_global = n.logsize
-        // 判断是否需要日志清理
+        this.logrotate = n.logrotate
+		this.logcompress = n.logcompress
+		this.logrotatecount = n.logrotatecount
+		this.logsize = n.logsize
+        // 判断是否需要日志清理s
         if(n.deleteTime){
             //需要
             let array = n.deleteTime.split(":")
@@ -97,7 +93,7 @@ module.exports = function(RED) {
 
                 let dayDir = "/" + year + "-" + month + "-" + day 
                 // 文件绝对路径 = 文件目录地址 + 文件名称
-                let completeLogPath = node.server.filePath + dayDir
+                let completeLogPath = n.filePath + dayDir
                 //删除30天前的日志
                 deleteDirectory(completeLogPath);
                 
@@ -196,27 +192,6 @@ module.exports = function(RED) {
           console.error('Directory not found:', directoryPath);
         }
     }
-    //日志分片
-    function LogRotate(node, filename, addlength) {
-		if (logrotate_global && filename) {
-			fullpath = globalfileAddDayDir + filename
-			if (fs.existsSync(fullpath)) {
-				stats = fs.statSync(fullpath)
-				fileSizeInBytes = stats["size"]
-				if (fileSizeInBytes + addlength + 1 >= logsize_global * 1000 ) {
-					rotate(fullpath, { count: logrotatecount_global, compress: (logcompress_global==true)}, function(err) {
-						if (err) {
-							node.warn("Could not rotate logfiles: " + err)
-						} else {
-							if (!fs.existsSync(fullpath)) {
-								fs.appendFileSync(fullpath,'');  // Create a new empty file if there is none
-							}
-						}
-					})
-				}
-			}
-		}
-	}
     //注册到Node的方法
     RED.nodes.registerType("log-server-config",LogServerConfig);
     RED.nodes.registerType("log-to-file",LogToFile);
@@ -227,5 +202,99 @@ module.exports = function(RED) {
             delete this.cronjob;
         }
     };
+    // //日志分片
+	// function LogRotate(node, filename, addlength) {
+	// 	if (node.server.logrotate) {
+	// 		fullpath = node.server.filePath  + filename
+    //         // console.log("fullpath1:"+addlength)
+	// 		if (fs.existsSync(fullpath)) {
+	// 			stats = fs.statSync(fullpath)
+	// 			fileSizeInBytes = stats["size"]
+	// 			if (fileSizeInBytes + addlength + 1 >= node.server.logsize * 1000 ) {
+    //                 console.log("fileSizeInBytes + addlength + 1:"+fileSizeInBytes + addlength + 1)
+	// 				rotate(fullpath, { count: node.server.logrotatecount, compress: (node.server.logcompress==true)}, function(err) {
+	// 					if (err) {
+	// 						node.warn("Could not rotate logfiles: " + err)
+	// 					} else {
+    //                         fs.writeFileSync(fullpath, '');
+	// 					}
+	// 				})
+	// 			}
+	// 		}
+	// 	}
+	// }
+    // function LogRotate(node, baseFileName) {
+    //     const currentFile = baseFileName;
 
+    //     if (!fs.existsSync(currentFile)) {
+    //         // If the current log file doesn't exist, create it.
+    //         fs.writeFileSync(currentFile, '');
+    //     }
+
+    //     const stats = fs.statSync(currentFile);
+    //     const fileSizeInBytes = stats.size;
+    //     if (fileSizeInBytes > node.server.logsize * 1024) {
+    //         // If the current log file size exceeds the limit, rotate logs
+    //         for (let i = node.server.logrotatecount; i > 1; i--) {
+    //             const source = `${baseFileName}_${i - 1}`;
+    //             const destination = `${baseFileName}_${i}`;
+    //             if (fs.existsSync(source)) {
+    //                 fs.renameSync(source, destination);
+    //             }
+    //         }
+    //         // Move the current log file to _1.log
+    //         const newFilePath = `${baseFileName}_1`;
+    //         fs.renameSync(currentFile, newFilePath);
+    //         // Create a new empty log file
+    //         fs.writeFileSync(currentFile, '');
+    //     }
+    // }
+    function LogRotate(node, baseFileName) {
+        const currentFile = baseFileName;
+    
+        if (!fs.existsSync(currentFile)) {
+            // If the current log file doesn't exist, create it.
+            fs.writeFileSync(currentFile, '');
+        }
+    
+        const stats = fs.statSync(currentFile);
+        const fileSizeInBytes = stats.size;
+        if (fileSizeInBytes  > node.server.logsize * 1024) {
+            // If the current log file size exceeds the limit, rotate logs
+            for (let i = node.server.logrotatecount-1; i > 0; i--) {
+                let source =""
+                let destination=""
+                if(node.server.logcompress){
+                    source = `${baseFileName}_${i}.gz`;
+                    destination = `${baseFileName}_${i + 1}.gz`;
+                }else{
+                    source = `${baseFileName}_${i}`;
+                    destination = `${baseFileName}_${i + 1}`;
+                }
+                if (fs.existsSync(source)) {
+                    fs.renameSync(source, destination);
+                }
+            }
+            // Move the current log file to _1.log and compress it
+            const newFilePath = `${baseFileName}_1`;
+            fs.renameSync(currentFile, newFilePath);
+            if(node.server.logcompress){
+                compressLogFile(newFilePath);
+            }
+            // Create a new log file
+            fs.writeFileSync(currentFile, '');
+        }
+    }
+    
+    function compressLogFile(filePath) {
+        const readStream = fs.createReadStream(filePath);
+        const writeStream = fs.createWriteStream(`${filePath}.gz`);
+        const gzip = zlib.createGzip();
+    
+        readStream.pipe(gzip).pipe(writeStream);
+    
+        readStream.on('close', () => {
+            fs.unlinkSync(filePath); // Remove the original log file after compression
+        });
+    }
 }

@@ -64,7 +64,7 @@
     </div>
     <div class="form-row">
 		<label for="node-input-inputchoice">
-            <i class="fa fa-repeat"></i> 
+            <i class="fa fa-bars" style="width: 10px"></i> 
             <span style="width: auto; margin-left: 5px; margin-right: 10px;">日志类型</span>
         </label>
 		<select type="text" id="node-input-inputchoice" >
@@ -75,7 +75,7 @@
 	</div>
 
 	<div class="form-row inputobject">
-		<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-input-inputobject"><i class="fa fa-chevron-right"></i> Object</label>
+		<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-input-inputobject"><i class="fa fa-chevron-right"></i></label>
 		<input type="text" id="node-input-inputobject" style="width:70%">
 		<input type="hidden" id="node-input-inputobjectType">
 	</div>
@@ -85,7 +85,7 @@
 </div>
     <div class="form-row">
 		<label for="node-input-loglevel">
-            <i class="fa fa-exclamation" style="width: 10px"></i> 
+            <i class="fa fa-filter" style="width: 10px"></i> 
             <span style="width: auto; margin-left: 5px; margin-right: 10px;">日志级别</span>
         </label>
 		<select type="text" id="node-input-loglevel" >
@@ -173,7 +173,7 @@
 
             if ($("#node-config-input-logrotate").is(':checked')) {
 				if ($("#node-config-input-logrotatecount").val() < 1) $("#node-config-input-logrotatecount").val(5)
-				if ($("#node-config-input-logsize").val() < 1) $("#node-config-input-logsize").val(1000)
+				if ($("#node-config-snput-logsize").val() < 1) $("#node-config-input-logsize").val(1000)
 			}
         }
     });
@@ -181,13 +181,13 @@
 
 <script type="text/html" data-template-name="log-server-config">
     <div class="form-row">
-        <label for="node-config-input-filePath"><i class="fa fa-file" style="width: 10px"></i>   
+        <label for="node-config-input-filePath"><i class="fa fa-folder" style="width: 10px"></i>   
             <span style="width: auto; margin-left: 5px; margin-right: 1px;">文件夹地址</span>
         </label>
         <input type="text" id="node-config-input-filePath" placeholder="/home/log">
     </div>
     <div class="form-row">
-		<label for="node-config-input-logClean"><i class="fa fa-tag" style="width: 10px"></i> 
+		<label for="node-config-input-logClean"><i class="fa fa-trash" style="width: 10px"></i> 
             <span style="width: auto; margin-left: 5px; margin-right: 1px;">定时清理</span>
         </label>
 		<input type="checkbox" id="node-config-input-logClean" style="display: inline-block; width: auto; vertical-align: top;">
@@ -195,21 +195,21 @@
     <div id="node-config-rotate-row">
         <div class="form-row">
 			<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-config-input-deleteDay">
-                <i class="fa fa-cogs"></i>
+                <i class="fa fa-hdd-o"></i>
                 <span style="width: auto; margin-left: 10px; margin-right: 10px;"> 日志保留天数 </span>
             </label>
 			<input type="text" id="node-config-input-deleteDay"  placeholder="30" style="width: 60px" >
 		</div>
 		<div class="form-row">
 			<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-config-input-deleteTime">
-                <i class="fa fa-repeat"></i>
+                <i class="fa fa-clock-o"></i>
                 <span style="width: auto; margin-left: 13px; margin-right: 10px;"> 每日清理时间 </span>
             </label>
 			<input type="text" id="node-config-input-deleteTime"  placeholder="13:00" style="width: 60px" >
 		</div>
 	</div>
     <div class="form-row">
-		<label for="node-config-input-logrotate"><i class="fa fa-repeat" style="width: 10px"></i>
+		<label for="node-config-input-logrotate"><i class="fa fa-files-o" style="width: 10px"></i>
             <span style="width: auto; margin-left: 5px; margin-right: 1px;">日志分片</span>
             
         </label>
@@ -225,14 +225,14 @@
 		</div>
 		<div class="form-row">
 			<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-config-input-logrotatecount">
-            <i class="fa fa-hashtag"></i>
+            <i class="fa fa-maxcdn"></i>
             <span style="width: auto; margin-left: 10px; margin-right: 10px;">最大日志数量</span>
             </label>
 			<input type="text" id="node-config-input-logrotatecount" style="width: 50%;" placeholder="5">
 		</div>
 		<div class="form-row">
 			<label style="width: auto; margin-left: 20px; margin-right: 10px;" for="node-config-input-logsize">
-                <i class="fa fa-hashtag"></i>
+                <i class="fa fa-maxcdn"></i>
                 <span style="width: auto; margin-left: 10px; margin-right: 10px;">最大日志大小/kB</span> 
             </label>
 			<input type="text" id="node-config-input-logsize" style="width: 50%;" placeholder="1000">

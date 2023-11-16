@@ -1,6 +1,6 @@
 {
 	"name": "@julaoshi/node-red-log-to-file",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"description": "Log collection sharding cleaning",
 	"keywords": [
 		"node-red"
@@ -19,7 +19,6 @@
 		"registry": "https://registry.npmjs.org/"
 	},
 	"dependencies": {
-		"log-rotate": "^0.2.8",
 		"cronosjs": "1.7.1"
 	},
 	"__npminstall_done": true
