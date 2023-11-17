@@ -60,7 +60,7 @@ module.exports = function(RED) {
             // 删除一些循环依赖的属性
             retrunmsg=removeReqRes(msgJson)
             let msgJsonFinal = JSON.stringify(retrunmsg) + "\n";
-            appendToFileWithCreate(completeLogPath, msgJsonFinal);
+            appendToFileWithCreate(completeLogPath, msgJsonFinal,node,formattedDateTime);
             //日志分片
             if(node.server.logrotate){
                 LogRotate(node, completeLogPath, msgJsonFinal.length)
@@ -158,18 +158,24 @@ module.exports = function(RED) {
 		return {msg: message, var: messageVar, raw: messageRaw}
 	}
     //写入文件
-    function appendToFileWithCreate(pathToFile, data, callback) {
+    function appendToFileWithCreate(pathToFile, data, node,formattedDateTime) {
         // 获取文件所在目录的路径
         const directory = path.dirname(pathToFile);
-        
         // 递归创建目录
         fs.mkdir(directory, { recursive: true }, (mkdirErr) => {
             if (mkdirErr) {
-            return;
+                node.status({shape: "ring", fill: "red", text: mkdirErr +", May contain files with the same name" })
+                return;
             }
             // 追加写入文件
             fs.writeFile(pathToFile, data, { flag: 'a' }, (writeErr) => {
-
+                if (writeErr) {
+                    // 处理写入错误
+                    node.status({shape: "ring", fill: "red", text: "Cant write file!"})
+                } else {
+                    // 写入成功
+                    node.status({shape: "ring", fill: "green", text: formattedDateTime})
+                }
             });
         });
     }
