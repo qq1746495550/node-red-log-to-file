@@ -6,6 +6,8 @@ module.exports = function(RED) {
     const {scheduleTask} = require("cronosjs");
 
     const zlib = require('zlib');
+    const Flatted = require('flatted');
+
 
 
     function LogToFile(config) {
@@ -55,7 +57,9 @@ module.exports = function(RED) {
                 "level":node.loglevel,
                 "msg": logmessage.msg
             }
-            let msgJsonFinal = JSON.stringify(msgJson) + "\n"
+            // 删除一些循环依赖的属性
+            retrunmsg=removeReqRes(msgJson)
+            let msgJsonFinal = JSON.stringify(retrunmsg) + "\n";
             appendToFileWithCreate(completeLogPath, msgJsonFinal);
             //日志分片
             if(node.server.logrotate){
@@ -191,16 +195,6 @@ module.exports = function(RED) {
           console.error('Directory not found:', directoryPath);
         }
     }
-    //注册到Node的方法
-    RED.nodes.registerType("log-server-config",LogServerConfig);
-    RED.nodes.registerType("log-to-file",LogToFile);
-    //部署时调用 删除定时任务
-    LogServerConfig.prototype.close = function() {
-        if (this.cronjob != null) {
-            this.cronjob.stop();
-            delete this.cronjob;
-        }
-    };
     //日志分片
     function LogRotate(node, baseFileName) {
         const currentFile = baseFileName;
@@ -250,4 +244,26 @@ module.exports = function(RED) {
             fs.unlinkSync(filePath); // Remove the original log file after compression
         });
     }
+    // 删除一些循环依赖的属性
+    function removeReqRes(obj) {
+        // 删除http请求中的res和req属性保证可以打印其他东西到日志中
+        if(obj.msg.hasOwnProperty('req')){
+            delete obj.msg.req;
+            delete obj.msg.res;
+            return obj;
+        }else{
+            return obj
+        }
+    }
+    //注册到Node的方法
+    RED.nodes.registerType("log-server-config",LogServerConfig);
+    RED.nodes.registerType("log-to-file",LogToFile);
+    //部署时调用 删除定时任务
+    LogServerConfig.prototype.close = function() {
+        if (this.cronjob != null) {
+            this.cronjob.stop();
+            delete this.cronjob;
+        }
+    };
+    
 }
