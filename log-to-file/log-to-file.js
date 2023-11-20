@@ -107,15 +107,6 @@ module.exports = function(RED) {
             //不需要
         }
     }
-    // 打印日志到控制台所需方法
-	function VarToString(v) {
-		if (typeof v == 'object') {
-			vs = JSON.stringify(v)
-		} else {
-			vs = v
-		}
-		return vs
-	}
     //打印日志到控制台所需方法
     function ConstructLogMessage(node, msg) {
         if (node.inputchoice == "object" && node.inputobject.length>0 ) {

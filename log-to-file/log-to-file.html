@@ -17,7 +17,7 @@
         },
         inputs: 1,
         outputs: 0,
-        icon: "file.svg",
+        icon: "file-out.svg",
         label: function() {
             return this.name||"log-to-file";
         },
@@ -137,13 +137,21 @@
         defaults: {
             filePath: {value:"",required:true},
             logClean: {value:""},
-            deleteTime: {value:"13:00"},
-            deleteDay:{value:"30"},
-
+            deleteTime: {
+                value:"13:00", 
+                validate:function(v) {
+                    const timeRegex = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+                    if (timeRegex.test(v)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+            }},
+            deleteDay:{value:"30",validate:onlyNumbers},
             logrotate: {value:""},
 			logcompress: {value:""},
-			logrotatecount: {value: "5"},
-			logsize: {value: "1000"}
+			logrotatecount: {value: "5",validate:onlyNumbers},
+			logsize: {value: "1000",validate:onlyNumbers}
         },
         label: function() {
             return this.filePath;
@@ -177,6 +185,14 @@
 			}
         }
     });
+    function onlyNumbers(v) {
+        const timeRegex = /^\d+$/;
+            if (timeRegex.test(v)) {
+                return true;
+            } else {
+                return false;
+            }
+    }
 </script>
 
 <script type="text/html" data-template-name="log-server-config">
