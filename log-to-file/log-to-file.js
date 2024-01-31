@@ -2,14 +2,8 @@ module.exports = function(RED) {
     // 引入文件系统模块
     var fs = require('fs'); 
     const path = require('path');
-
     const {scheduleTask} = require("cronosjs");
-
     const zlib = require('zlib');
-    const Flatted = require('flatted');
-
-
-
     function LogToFile(config) {
         RED.nodes.createNode(this,config);
         var node = this;
