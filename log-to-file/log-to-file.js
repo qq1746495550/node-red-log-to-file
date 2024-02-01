@@ -6,7 +6,7 @@ module.exports = function(RED) {
     const zlib = require('zlib');
     function LogToFile(config) {
         RED.nodes.createNode(this,config);
-        var node = this;
+       
         this.sendpane = config.sendpane
         this.loglevel  =config.loglevel
             
@@ -15,51 +15,55 @@ module.exports = function(RED) {
         this.inputobjectType = config.inputobjectType
 
         this.server = RED.nodes.getNode(config.server)
+        this.active = (config.active === null || typeof config.active === "undefined") || config.active;
+        
+        var node = this;
         node.on('input', function(msg) {
-            
-            // 判断日志打印什么
-            let logmessage = ConstructLogMessage(node, msg)
-             //打印日志到调试窗口
-            if (node.sendpane) { // User wants the logentry also in the debug pane of the webinterface
-				node.warn(logmessage.msg)
-			}
+            if(this.active){
+                // 判断日志打印什么
+                let logmessage = ConstructLogMessage(node, msg)
+                //打印日志到调试窗口
+                if (node.sendpane) { // User wants the logentry also in the debug pane of the webinterface
+                    node.warn(logmessage.msg)
+                }
 
-            let currentDate = new Date();
-            // 获取年、月、日
-            let year = currentDate.getFullYear();
-            let month = String(currentDate.getMonth() + 1).padStart(2, '0'); // 注意月份从0开始，需要加1，并补零
-            let day = String(currentDate.getDate()).padStart(2, '0');
-            
-            // 获取时、分、秒、毫秒
-            let hours = String(currentDate.getHours()).padStart(2, '0');
-            let minutes = String(currentDate.getMinutes()).padStart(2, '0');
-            let seconds = String(currentDate.getSeconds()).padStart(2, '0');
-            let milliseconds = String(currentDate.getMilliseconds()).padStart(3, '0');
-            
-            // 格式化成标准日期时间字符串
-            let formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-            // 日期目录名称
-            let dayDirName = year + "-" + month + "-" + day
-            // 文件名称
-            let fileName = year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
-            // 文件绝对路径 = 文件目录地址 + 日期目录名称 + 文件名称
-            let completeLogPath = path.join(node.server.filePath,dayDirName,fileName)
-            // 写入文件
-            let msgJson = {
-                "time": formattedDateTime,
-                "nodeName": this.name,
-                "level":node.loglevel,
-                "msg": logmessage.msg
+                let currentDate = new Date();
+                // 获取年、月、日
+                let year = currentDate.getFullYear();
+                let month = String(currentDate.getMonth() + 1).padStart(2, '0'); // 注意月份从0开始，需要加1，并补零
+                let day = String(currentDate.getDate()).padStart(2, '0');
+                
+                // 获取时、分、秒、毫秒
+                let hours = String(currentDate.getHours()).padStart(2, '0');
+                let minutes = String(currentDate.getMinutes()).padStart(2, '0');
+                let seconds = String(currentDate.getSeconds()).padStart(2, '0');
+                let milliseconds = String(currentDate.getMilliseconds()).padStart(3, '0');
+                
+                // 格式化成标准日期时间字符串
+                let formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+                // 日期目录名称
+                let dayDirName = year + "-" + month + "-" + day
+                // 文件名称
+                let fileName = year + "-" + month + "-" + day + "_" + node.loglevel + ".log"
+                // 文件绝对路径 = 文件目录地址 + 日期目录名称 + 文件名称
+                let completeLogPath = path.join(node.server.filePath,dayDirName,fileName)
+                // 写入文件
+                let msgJson = {
+                    "time": formattedDateTime,
+                    "nodeName": this.name,
+                    "level":node.loglevel,
+                    "msg": logmessage.msg
+                }
+                // 删除一些循环依赖的属性
+                retrunmsg=removeReqRes(msgJson)
+                let msgJsonFinal = JSON.stringify(retrunmsg) + "\n";
+                appendToFileWithCreate(completeLogPath, msgJsonFinal,node,formattedDateTime);
+                //日志分片
+                if(node.server.logrotate){
+                    LogRotate(node, completeLogPath, msgJsonFinal.length)
+                }
+                node.send(msg)
             }
-            // 删除一些循环依赖的属性
-            retrunmsg=removeReqRes(msgJson)
-            let msgJsonFinal = JSON.stringify(retrunmsg) + "\n";
-            appendToFileWithCreate(completeLogPath, msgJsonFinal,node,formattedDateTime);
-            //日志分片
-            if(node.server.logrotate){
-                LogRotate(node, completeLogPath, msgJsonFinal.length)
-            }
-            node.send(msg)
         });
     }
     function LogServerConfig(n) {
@@ -256,5 +260,27 @@ module.exports = function(RED) {
             delete this.cronjob;
         }
     };
-    
+    //点击右侧按钮调用
+    RED.httpAdmin.post("/log-to-file/:nodeID/:state", function(req, res) {
+        var state = req.params.state;
+        if (state !== 'enable' && state !== 'disable') {
+            res.sendStatus(404);
+            return;
+        }
+        var node = RED.nodes.getNode(req.params.id);
+        if (node !== null && typeof node !== "undefined" ) {
+            setNodeState(node,state === "enable");
+            res.sendStatus(state === "enable" ? 200 : 201);
+        } else {
+            res.sendStatus(404);
+        }
+    }); 
+    //改变节点活动状态，以变成生成或失效状态
+    function setNodeState(node,state) {
+        if (state) {
+            node.active = true;
+        } else {
+            node.active = false;
+        }
+    }
 }

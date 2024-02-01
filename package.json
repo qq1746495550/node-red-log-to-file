@@ -1,6 +1,6 @@
 {
 	"name": "@julaoshi/node-red-log-to-file",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"description": "Log collection sharding cleaning",
 	"keywords": [
 		"node-red"

@@ -1,25 +1,91 @@
 <script type="text/javascript">
+(function() {
+    //点击右侧按钮调用
+    function activateAjaxCall(node, active, successCallback) {
+        var url;
+        var body;
 
+        if (Array.isArray(node)) {
+            url = "debug/"+(active?"enable":"disable");
+            body = {nodes: node.map(function(n) { return n.id})}
+            node = node[0];
+        } else {
+            url = "debug/"+node.id+"/"+(active?"enable":"disable");
+        }
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: body,
+            success: function (data, textStatus, jqXHR) {
+                // 成功回调
+                // console.log(`Ajax request successful. Data: ${JSON.stringify(data)}, Status: ${textStatus}`);
+                successCallback(data, textStatus, jqXHR);
+            },
+            error: function(jqXHR,textStatus,errorThrown) {
+                if (jqXHR.status == 404) {
+                    RED.notify(node._("common.notification.error", {message: node._("common.notification.errors.not-deployed")}),"error");
+                } else if (jqXHR.status === 0) {
+                    RED.notify(node._("common.notification.error", {message: node._("common.notification.errors.no-response")}),"error");
+                } else {
+                    // TODO where is the err.status comming from?
+                    RED.notify(node._("common.notification.error",{message:node._("common.notification.errors.unexpected",{status:err.status,message:err.response})}),"error");
+                }
+            }
+        });
+    }
     RED.nodes.registerType('log-to-file',{
         category: 'common',
         align: "right",
         color: '#c6a8de',
         defaults: {
             name: {value:"_DEFAULT_"},
+            active: {value:true},
+            tosidebar: {value:true},
             filePath: {value:""},
             server: {value:"", type:"log-server-config"},
             sendpane: {value:""},
             loglevel: {value:"INFO", required: true},
             inputchoice: {value:"fullmsg"},
             inputobject: {value:"payload"},
-			inputobjectType: {value: 'msg'}
-            
+			inputobjectType: {value: 'msg'},
         },
         inputs: 1,
         outputs: 0,
         icon: "file-out.svg",
         label: function() {
             return this.name||"log-to-file";
+        },
+        button: {
+            toggle: "active",
+            visible: function() { return this.tosidebar; },
+            onclick: function() {
+                var label = RED.utils.sanitize(this.name||"log-to-file");
+                var node = this;
+                activateAjaxCall(node, node.active, function(resp, textStatus, xhr) {
+                    var historyEvent = {
+                        t:'edit',
+                        node:node,
+                        changes:{
+                            active:!node.active
+                        },
+                        dirty:node.dirty,
+                        changed:node.changed,
+                        callback: function(ev) {
+                            activateAjaxCall(ev.node, ev.node.active);
+                        }
+                    };
+                    node.changed = true;
+                    node.dirty = true;
+                    RED.nodes.dirty(true);
+                    RED.history.push(historyEvent);
+                    RED.view.redraw();
+                    if (xhr.status == 200) {
+                        RED.notify(node._("此节点已生效"), { type: "success", timeout: 3000 });
+                    } else if (xhr.status == 201) {
+                        RED.notify(node._("此节点已失效，将不会写入文件且不会在调试窗口打印"), { type: "success", timeout: 3000 });
+                    }
+                });
+            }
         },
         onadd: function() {
             if (this.name === '_DEFAULT_') {
@@ -46,7 +112,7 @@
 			})
 		}
     });   
-
+})();
 </script>
 
 <script type="text/html" data-template-name="log-to-file">
