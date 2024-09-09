@@ -156,16 +156,50 @@ module.exports = function(RED) {
                 node.status({shape: "ring", fill: "red", text: mkdirErr +", May contain files with the same name" })
                 return;
             }
-            // 追加写入文件
-            fs.writeFile(pathToFile, data, { flag: 'a' }, (writeErr) => {
-                if (writeErr) {
-                    // 处理写入错误
-                    node.status({shape: "ring", fill: "red", text: "Cant write file!"})
-                } else {
-                    // 写入成功
-                    node.status({shape: "ring", fill: "green", text: formattedDateTime})
-                }
-            });
+
+        // 追加写入文件
+        fs.open(pathToFile, 'a', (openErr, fd) => {
+            if (openErr) {
+                node.status({ shape: "ring", fill: "red", text: "Cannot open file!" });
+                return;
+            }
+
+                // 写入数据
+                fs.write(fd, data, (writeErr) => {
+                    if (writeErr) {
+                        node.status({ shape: "ring", fill: "red", text: "Can't write file!" });
+                    } else {
+                        // 调用 fsync 来确保数据写入磁盘
+                        fs.fsync(fd, (syncErr) => {
+                            if (syncErr) {
+                                node.status({ shape: "ring", fill: "red", text: "Sync to disk failed!" });
+                            } else {
+                                node.status({ shape: "ring", fill: "green", text: formattedDateTime });
+                            }
+    
+                            // 关闭文件
+                            fs.close(fd, (closeErr) => {
+                                if (closeErr) {
+                                    node.status({ shape: "ring", fill: "red", text: "Error closing file!" });
+                                }
+                            });
+                        });
+                    }
+
+                });
+        });
+            // // 追加写入文件 //没有强制同步到磁盘
+            // fs.writeFile(pathToFile, data, { flag: 'a' }, (writeErr) => {
+            //     if (writeErr) {
+            //         // 处理写入错误
+            //         node.status({shape: "ring", fill: "red", text: "Cant write file!"})
+            //     } else {
+            //         // 写入成功
+            //         node.status({shape: "ring", fill: "green", text: formattedDateTime})
+            //         //确保文件写入磁盘中
+            //         fs.fsyncSync(pathToFile)
+            //     }
+            // });
         });
     }
     //删除目录
